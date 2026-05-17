@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SlangStream — Language in Motion</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="loading"><span class="load-word">LOADING SLANGSTREAM...</span></div>
+
+<!-- Background canvases -->
+<canvas id="bg-canvas"></canvas>
+<canvas id="bubble-canvas"></canvas>
+
+<!-- ══ LANDING ══ -->
+<div class="screen" id="landing">
+  <div class="landing-inner">
+    <div class="logo-word">SLANG<span class="logo-stream">STREAM</span></div>
+    <p class="tagline">Track how language evolves in real time</p>
+    <button class="start-btn" onclick="showHub()"><span>START STREAM</span></button>
+    <div class="stats-row">
+      <div class="stat"><div class="stat-num" id="cnt-words">0</div><div class="stat-label">Words Tracked</div></div>
+      <div class="stat"><div class="stat-num" id="cnt-memes">0</div><div class="stat-label">Memes Mapped</div></div>
+      <div class="stat"><div class="stat-num" id="cnt-communities">0</div><div class="stat-label">Communities</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ HUB MENU ══ -->
+<div class="screen hidden" id="hub">
+  <p class="hub-title">Choose your stream</p>
+  <div class="hub-grid">
+    <div class="hub-card c1" onclick="showStream()">
+      <div class="hub-card-icon c1-icon">LIVE</div>
+      <div class="hub-card-title">Emerging Slang</div>
+      <div class="hub-card-desc">Live stream of words entering the lexicon. Click any term to explore its origin story.</div>
+    </div>
+    <div class="hub-card c2" onclick="showGeo()">
+      <div class="hub-card-icon c2-icon">GEO</div>
+      <div class="hub-card-title">Meme Geography</div>
+      <div class="hub-card-desc">Watch slang spread across cities and regions. See origin points and growth circles.</div>
+    </div>
+    <div class="hub-card c3" onclick="showEvo()">
+      <div class="hub-card-icon c3-icon">EVO</div>
+      <div class="hub-card-title">Language Evolution</div>
+      <div class="hub-card-desc">Visualize how words gain and lose traction over time across different generations.</div>
+    </div>
+    <div class="hub-card c4" onclick="showStream()">
+      <div class="hub-card-icon c4-icon">COM</div>
+      <div class="hub-card-title">Community Influence</div>
+      <div class="hub-card-desc">Discover which online communities are driving language change the most right now.</div>
+    </div>
+  </div>
+  <button class="hub-back" onclick="showLanding()">&larr; Back to Home</button>
+</div>
+
+<!-- ══ STREAM SCREEN ══ -->
+<div class="screen hidden" id="stream-screen">
+  <div class="stream-header">
+    <div class="pulse-dot"></div>
+    <div class="stream-title">LIVE SLANG STREAM</div>
+    <div class="stream-controls">
+      <button class="ctrl-btn active" id="filter-all"  onclick="setFilter('all')">ALL</button>
+      <button class="ctrl-btn"        id="filter-hot"  onclick="setFilter('hot')">HOT</button>
+      <button class="ctrl-btn"        id="filter-viral"onclick="setFilter('viral')">VIRAL</button>
+      <button class="ctrl-btn"        id="filter-new"  onclick="setFilter('new')">NEW</button>
+      <button class="ctrl-btn"        id="filter-cool" onclick="setFilter('cool')">COOL</button>
+    </div>
+  </div>
+  <div id="stream-area"></div>
+</div>
+
+<!-- ══ EVOLUTION SCREEN ══ -->
+<div class="screen hidden" id="evo-screen">
+  <div class="evo-header">
+    <div class="evo-title">LANGUAGE EVOLUTION</div>
+    <span class="evo-hint">click a word to explore its origin</span>
+  </div>
+  <div class="evo-body">
+    <div class="evo-chart-wrap"><canvas id="evo-canvas"></canvas></div>
+    <div class="evo-words-grid" id="evo-grid"></div>
+  </div>
+</div>
+
+<!-- ══ GEO MAP SCREEN ══ -->
+<div class="screen hidden" id="geo-screen">
+  <div class="geo-header">
+    <div class="geo-title">MEME GEOGRAPHY</div>
+    <span class="geo-hint">markers = origin &nbsp;&middot;&nbsp; circles = spread radius</span>
+  </div>
+  <div id="geo-map">
+    <div id="geo-map-leaflet"></div>
+    <div class="geo-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#ff6b35"></div><span>Hot / viral</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ffd166"></div><span>Warming up</span></div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00e5ff"></div><span>Cooling down</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ BOTTOM NAV ══ -->
+<div class="app-nav" id="app-nav">
+  <button class="nav-btn" id="nav-stream" onclick="showStream()">Stream</button>
+  <button class="nav-btn" id="nav-geo"    onclick="showGeo()">Geo</button>
+  <button class="nav-btn" id="nav-evo"    onclick="showEvo()">Evolution</button>
+  <button class="nav-btn"                 onclick="showHub()">Menu</button>
+</div>
+
+<!-- ══ WORD DETAIL MODAL ══ -->
+<div id="modal-overlay" onclick="closeModal(event)">
+  <div id="modal">
+    <div class="modal-header">
+      <div>
+        <div class="modal-word-title" id="modal-title">WORD</div>
+        <div id="modal-badges" class="modal-meta-row"></div>
+      </div>
+      <button class="modal-close-btn" onclick="closeModal()">CLOSE</button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Gemini banner -->
+      <div class="gemini-banner" id="gemini-status">
+        <span class="gemini-label">AI ANALYSIS</span>
+        <span id="gemini-msg">Enter your Gemini API key below for real-time etymology and community analysis</span>
+      </div>
+
+      <div class="modal-grid">
+        <div>
+          <div class="modal-section">
+            <div class="modal-section-title">Definition</div>
+            <div class="modal-def" id="modal-def">—</div>
+          </div>
+          <div class="modal-section">
+            <div class="modal-section-title">How it came to be</div>
+            <div class="modal-def" id="modal-origin">—</div>
+          </div>
+        </div>
+        <div>
+          <div class="modal-section">
+            <div class="modal-section-title">Usage example</div>
+            <div class="modal-def modal-example" id="modal-example">—</div>
+          </div>
+          <div class="modal-section">
+            <div class="modal-section-title">Cultural context</div>
+            <div class="modal-def" id="modal-context">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Geographic origin &amp; spread</div>
+        <div id="modal-map"></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Community influence</div>
+        <div class="community-grid" id="modal-communities"></div>
+      </div>
+
+      <div class="modal-section">
+        <div class="modal-section-title">Language timeline</div>
+        <ul class="timeline-list" id="modal-timeline"></ul>
+      </div>
+    </div>
+
+    <!-- ══ GEMINI API SECTION ══ -->
+    <div class="api-section">
+      <div class="api-label">Gemini API — Real-time analysis</div>
+      <div class="api-row">
+        <input type="password" class="api-input" id="api-key-input" placeholder="Paste your Gemini API key here (AIza...)">
+        <button class="api-btn" onclick="analyzeWithGemini()">ANALYZE</button>
+        <div id="ai-spinner"></div>
+      </div>
+      <div id="ai-result"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts loaded in order -->
+<script src="js/data.js"></script>
+<script src="js/background.js"></script>
+<script src="js/bubbles.js"></script>
+<script src="js/modal.js"></script>
+<script src="js/stream.js"></script>
+<script src="js/evolution.js"></script>
+<script src="js/geomap.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
