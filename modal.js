@@ -12,7 +12,7 @@
 //    password input in the modal. Your key is stored only in memory
 //    for the current session.
 // ──────────────────────────────────────────────────────────────────────────
-const GEMINI_API_KEY = '';   // <-- PASTE YOUR KEY HERE (or leave blank to enter in UI)
+const GEMINI_API_KEY = 'AIzaSyAevS_FTvh2w7Xmi46bZdo1xMgbqooTq0o';   // <-- PASTE YOUR KEY HERE (or leave blank to enter in UI)
 
 let mapInstance  = null;
 let currentWord  = null;
